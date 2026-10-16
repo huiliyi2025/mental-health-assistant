@@ -1,0 +1,62 @@
+services:
+  # ---------------- MySQL ----------------
+  mysql:
+    image: mysql:8.0
+    container_name: mh-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_DATABASE: mental_health_assistant
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      # 映射到宿主机 3307，避免与本机已安装的 MySQL(3306) 冲突
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 首次启动时自动执行建库建表脚本
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- 后端 ----------------
+  backend:
+    build: ./backend
+    container_name: mh-backend
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/mental_health_assistant?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      AI_API_KEY: ${AI_API_KEY:-your-api-key}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.siliconflow.cn}
+      AI_MODEL: ${AI_MODEL:-deepseek-ai/DeepSeek-V3}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-at-least-32-bytes}
+      FILE_UPLOAD_DIR: /app/upload
+      # 安慰邮件（QQ 邮箱；MAIL_PASSWORD 填 SMTP 授权码）
+      MAIL_HOST: ${MAIL_HOST:-smtp.qq.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-金凤心理助手}
+      COMFORT_MAIL_ENABLED: ${COMFORT_MAIL_ENABLED:-true}
+    ports:
+      - "1236:1236"
+    volumes:
+      - upload-data:/app/upload
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ---------------- 前端 ----------------
+  frontend:
+    build: ./frontend
+    container_name: mh-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  upload-data:

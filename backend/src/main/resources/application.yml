@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: mental-health-assistant
+
+  datasource:
+    # 数据库连接，可用环境变量覆盖（DB_URL / DB_USERNAME / DB_PASSWORD）
+    url: ${DB_URL:jdbc:mysql://localhost:3306/mental_health_assistant?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:your-db-password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  ai:
+    openai:
+      # 模型服务：此处以硅基流动(SiliconFlow)为例，兼容 OpenAI 协议
+      base-url: ${AI_BASE_URL:https://api.siliconflow.cn}
+      api-key: ${AI_API_KEY:your-api-key}
+      chat:
+        completions-path: /v1/chat/completions
+        options:
+          model: ${AI_MODEL:deepseek-ai/DeepSeek-V3}
+          temperature: 0.7
+
+  # 邮件发送配置（默认 QQ 邮箱；密码填「SMTP 授权码」而非登录密码）
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    # 下划线转驼峰（默认开启，这里显式声明）
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+server:
+  port: 1236
+
+# JWT 配置
+jwt:
+  # 生产环境务必通过环境变量 JWT_SECRET 注入一个长度 >= 32 字节的随机密钥
+  secret: ${JWT_SECRET:please-change-this-secret-key-to-a-long-random-value-32bytes+}
+  expiration: 86400000            # 24小时（毫秒）
+  refresh-expiration: 604800000   # 7天（毫秒）
+  header: Authorization           # token 头部名称
+  token-prefix: "Bearer "         # token 前缀
+
+# 文件上传配置
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:./upload}   # 上传文件存储目录
+  max-size: 5242880                          # 单文件最大 5MB
+
+# 安慰邮件配置（情绪低落时发送温暖诗句）
+app:
+  mail:
+    enabled: ${COMFORT_MAIL_ENABLED:true}    # 是否启用「情绪低落发送安慰邮件」
+    from-name: ${MAIL_FROM_NAME:金凤心理助手}
+    daily-limit: ${COMFORT_MAIL_DAILY_LIMIT:1}   # 每个用户每天最多发送封数
+
+
+# Swagger / OpenAPI 接口文档
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置
+logging:
+  level:
+    root: info
+    org.example.aispringboot: debug
