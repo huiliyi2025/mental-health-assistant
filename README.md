@@ -88,18 +88,14 @@ docker compose up -d --build
 
 后端启动后访问 `http://localhost:1236/swagger-ui.html`。
 
-## 本地 / 远程后端切换
+## 本地
 
 `frontend/vite.config.js` 中的代理目标默认为本机后端：
 
 ```js
 const API_TARGET = process.env.VITE_API_TARGET || 'http://localhost:1236'
 ```
-
-- 想连远程服务器时（PowerShell）：`$env:VITE_API_TARGET="http://你的服务器:1235"; npm run dev`
-- 想连本机后端时：直接 `npm run dev`
-
-⚠️ 注意：连到远程共享服务器时，你的数据会存到服务器上、也可能看到别人的数据。
+连本机后端时：直接 `npm run dev`
 
 ## 安全提示
 
