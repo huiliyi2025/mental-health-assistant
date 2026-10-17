@@ -86,6 +86,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 配置请求的授权规则
                 .authorizeHttpRequests(auth -> auth
+                        // 只对首次 REQUEST 派发鉴权，跳过 ASYNC/ERROR 派发。
+                        // 否则 SSE 流式响应的异步派发会被重复鉴权，导致“响应已提交仍被拒绝”并提前断开连接。
+                        .shouldFilterAllDispatcherTypes(false)
                         // 公开的路径，无需登录即可访问
                         .requestMatchers(PUBLIC_PATHS).permitAll()
                         // 公开的 GET 请求（文章阅读、静态文件）

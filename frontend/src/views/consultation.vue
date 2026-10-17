@@ -400,8 +400,7 @@ const startAIResponse = (sessionId, userMessage) => {
 
             if (eventName === 'done') {
                 isAiTyping.value = false
-                ctrl.abort()
-                // 进行情绪分析
+                // 不主动 abort，让连接自然关闭，避免触发 onerror 把已显示的内容覆盖成“失败”
                 loadSessionEmotion(currentSession.value.sessionId)
                 return
             }
@@ -419,10 +418,15 @@ const startAIResponse = (sessionId, userMessage) => {
             }
         },
         onerror: (err) => {
+            isAiTyping.value = false
+            // 主动中止或正常关闭，不算失败
+            if (err && err.name === 'AbortError') return
             handleError(err || 'AI回复失败')
             throw err
         },
         onclose: () => {
+            // 连接关闭时复位输入态，避免没收到 done 时一直卡在“AI输入中”
+            isAiTyping.value = false
             // 开始情绪分析
             loadSessionEmotion(currentSession.value.sessionId)
         }

@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -136,8 +135,7 @@ public class PsychologicalChat {
                 .concatWith(Flux.just(ServerSentEvent.<String>builder()
                         .event("done")
                         .data("{}")
-                        .build()))
-                .delayElements(Duration.ofMillis(50));
+                        .build()));
     }
 
     /**
